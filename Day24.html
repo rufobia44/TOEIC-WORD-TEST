@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영어 단어 테스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eaeaea;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+        }
+        h1 {
+            margin-bottom: 30px;
+            color: #007bff;
+        }
+        table {
+            border-collapse: collapse;
+            background-color: #fff;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin:20px auto;
+        }
+        
+        td {
+            padding:10px;
+            text-align: center;
+            font-size: 14px;
+            border-radius: 10px;
+            border:2px solid #0092ff;
+        }
+        
+        input {
+            width: 85%;
+            padding:14px;
+            border: none; 
+            border-radius: 5px;
+            background-color: #f7f7f7;
+            transition: background-color 0.3s;
+        }
+        input:focus {     
+            outline: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+        }
+        .feedback {
+            color: #d9534f; 
+        }
+    </style>
+</head>
+<body>
+
+<h1>TOEIC DAY 24</h1>
+
+<table>
+    <tbody id="wordTable"></tbody>
+</table>
+
+<button onclick="checkAnswers()">정답 제출</button>
+
+<div id="result"></div>
+
+<script>
+const words = [
+    { english: "appoint", korean: ["임명하다", "지명하다"] },
+    { english: "appraisal", korean: ["평가"] },
+    { english: "promote", korean: ["승진시키다", "촉진하다"] },
+    { english: "skilled", korean: ["숙련된", "노련한"] },
+    { english: "radically", korean: ["완전히", "철저히", "근본적으로"] },
+    { english: "exceptional", korean: ["뛰어난", "예외적인"] },
+    { english: "appreciation", korean: ["감사"] },
+    { english: "evaluate", korean: ["평가하다"] },
+    { english: "suggest", korean: ["제안하다", "추천하다"] },
+    { english: "preference", korean: ["선호"] },
+    { english: "management", korean: ["경영진", "경영"] },
+    { english: "predict", korean: ["예측하다"] },
+    { english: "transfer", korean: ["보내다", "전근시키다"] },
+    { english: "award", korean: ["상", "보상)"] },
+    { english: "mandatory", korean: ["의무적인"] },
+    { english: "competent", korean: ["유능한", "능숙한"] },
+    { english: "performance", korean: ["실적", "성과", "공연", "연주", "연기"] },
+    { english: "reward", korean: ["~에 보답하다", "보상하다", "포상", "보상"] },
+    { english: "search", korean: ["찾기", "수색", "조사"] },
+    { english: "inexperienced", korean: ["경험없는", "미숙한"] },
+    { english: "early", korean: ["시간상 이른", "조기의"] },
+    { english: "designate", korean: ["지명하다", "지정하다"] },
+    { english: "executive", korean: ["경영의", "관리의"] },
+    { english: "dedication", korean: ["헌신"] },
+    { english: "unanimously", korean: ["만장일치로"] },
+    { english: "progress", korean: ["진행", "진척", "진전", "진보하다", "발전하다"] },
+    { english: "congratulate", korean: ["축하하다"] },
+    { english: "dismiss", korean: ["해임하다", "해고하다"] },
+    { english: "independence", korean: ["독립성"] },
+    { english: "participation", korean: ["참여", "참가", "가입"] },
+    { english: "praise", korean: ["칭찬"] },
+    { english: "accomplishment", korean: ["성과", "업적"] },
+    { english: "deliberation", korean: ["토의", "심의", "숙고"] },
+    { english: "leadership", korean: ["리더십", "지도력"] },
+    { english: "retire", korean: ["퇴직하다", "은퇴하다"] },
+    { english: "nomination", korean: ["임명", "지명"] },
+    { english: "reorganize", korean: ["재편성하다", "재조직하다"] },
+    { english: "serve", korean: ["근무하다", "일하다"] },
+    { english: "encouragement", korean: ["격려"] },
+    { english: "resignation", korean: ["사임", "사직", "사직서"] },
+    { english: "strictly", korean: ["엄격히"] }
+];
+
+let usedWords = [];
+let correctAnswers = []; 
+
+function generateTable() {
+    const table = document.getElementById("wordTable");
+    table.innerHTML = ""; 
+    let currentRow;
+
+    for (let i = 0; i < 20; i++) { 
+        currentRow = document.createElement("tr");
+        
+        const firstNumberCell = document.createElement("td");
+        firstNumberCell.innerText = (i * 2 + 1); // 1, 3, ..., 39
+        currentRow.appendChild(firstNumberCell);
+
+        const firstWordCell = document.createElement("td");
+        const firstWord = getRandomWord();
+        if (!firstWord) { break; } 
+        firstWordCell.innerText = firstWord.text;
+        correctAnswers.push(firstWord.answer); // 첫 번째 정답 추가
+        currentRow.appendChild(firstWordCell);
+
+        const secondInputCell = document.createElement("td");
+        const secondInput = document.createElement("input");
+        secondInput.type = "text";
+        secondInputCell.appendChild(secondInput);
+        currentRow.appendChild(secondInputCell);
+        
+        const fourthNumberCell = document.createElement("td");
+        fourthNumberCell.innerText = (i * 2 + 2); // 2, 4, ..., 40
+        currentRow.appendChild(fourthNumberCell);
+
+        const thirdWordCell = document.createElement("td");
+        const thirdWord = getRandomWord();
+        if (!thirdWord) { break; } 
+        thirdWordCell.innerText = thirdWord.text;
+        correctAnswers.push(thirdWord.answer); // 두 번째 정답 추가
+        currentRow.appendChild(thirdWordCell);
+        
+        const fourthInputCell = document.createElement("td");
+        const fourthInput = document.createElement("input");
+        fourthInput.type = "text";
+        fourthInputCell.appendChild(fourthInput);
+        currentRow.appendChild(fourthInputCell);
+
+        table.appendChild(currentRow);
+    }
+}
+
+function getRandomWord() {
+    if (usedWords.length >= words.length * 2) {
+        return null; 
+    }
+    
+    let wordPair, randomWord, answer;
+    let isEnglish = Math.random() > 0.5; 
+    do {
+        wordPair = words[Math.floor(Math.random() * words.length)];
+        randomWord = isEnglish ? wordPair.english : wordPair.korean;
+    } while (usedWords.includes(randomWord)); 
+
+    usedWords.push(randomWord); 
+    answer = isEnglish ? wordPair.korean.join(", ") : wordPair.english; // 여러 정답을 쉼표로 구분
+    return { text: randomWord, answer: answer };
+}
+
+function checkAnswers() {
+    const inputs = document.querySelectorAll("input[type='text']");
+    let correctCount = 0;
+    let feedback = '';
+
+    for (let i = 0; i < 40; i++) {
+        const userAnswer = inputs[i].value.trim();
+        const correctAnswer = correctAnswers[i];
+
+        // 여러 개의 정답이 있을 경우 처리
+        const correctAnswersArray = correctAnswer.split(","); 
+        if (correctAnswersArray.some(answer => answer.trim() === userAnswer)) {
+            correctCount++;
+        } else {
+            feedback += `${i + 1}번 정답 : "${correctAnswer}"<br>`;
+        }
+    }
+
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = `총 ${correctCount}개 정답을 맞췄습니다.<br>${feedback}`;
+}
+
+generateTable();
+</script>
+
+</body>
+</html>
